@@ -103,10 +103,12 @@ int main(void)
   RCC->AHB2ENR |= (RCC_AHB2ENR_GPIOAEN | RCC_AHB2ENR_GPIOCEN);
 
 
+  //Set all pins to output
   GPIOC->MODER &= ~(0x3FFFFF);
   GPIOC->MODER |= (0x255555);
 
 
+  //Reset PC0-PC10 to 0
   GPIOC->BRR = (0x7FF);
 
 
@@ -121,12 +123,12 @@ int main(void)
   //pin 12 PC8 (DB5)
   //pin 13 PC9 (DB6)
   //pin 14 PC10 (DB7)
-  void LCD_write_command(uint8_t a){
+  void LCD_write_command(uint8_t command){
 	  //Reset the state of the data bus
 	  GPIOC->BRR = (0x7F8);
 
 	  //Shift the bits to the start of DB0
-	  GPIOC->BSRR = (a << 3);
+	  GPIOC->BSRR = (command << 3);
 
 	  GPIOC->BRR = ((0x1 << 0) | (0x1 << 1));
 	  HAL_Delay(1);
@@ -136,12 +138,12 @@ int main(void)
 
   }
 
-  void LCD_write_data(uint8_t a){
+  void LCD_write_data(uint8_t data){
 	  //reset the state of the data buses
 	  GPIOC->BRR = (0x7F8);
 
 	  //shift the bits to the start of DB0
-	  GPIOC->BSRR = (a << 3);
+	  GPIOC->BSRR = (data << 3);
 
 	  //Set the bit for the RS register
 	  GPIOC->BSRR = (0x1 << 0);
@@ -167,6 +169,7 @@ int main(void)
 
 	  LCD_write_command(0xC0);
   }
+
 
   void LCD_move_right(){
 	  uint8_t com = 0x14;
@@ -197,32 +200,32 @@ int main(void)
 
 
   void LCD_Init(){
-	  uint8_t a = 0x30;
-	  LCD_write_command(a);
+	  uint8_t command = 0x30;
+	  LCD_write_command(command);
 	  HAL_Delay(100);
-	  LCD_write_command(a);
+	  LCD_write_command(command);
 	  HAL_Delay(10);
-	  LCD_write_command(a);
+	  LCD_write_command(command);
 	  HAL_Delay(10);
 
 	  //function set
-	  a = 0x38;
-	  LCD_write_command(a);
+	  command = 0x38;
+	  LCD_write_command(command);
 	  //shift display = no
-	  a = 0x10;
-	  LCD_write_command(a);
+	  command = 0x10;
+	  LCD_write_command(command);
 
 	  //display on
-	  a = 0x0F;
-	  LCD_write_command(a);
+	  command = 0x0F;
+	  LCD_write_command(command);
 
 	  //entry mode set
-	  a = 0x06;
-	  LCD_write_command(a);
+	  command = 0x06;
+	  LCD_write_command(command);
 
 	  //clear display
-	  a = 0x01;
-	  LCD_write_command(a);
+	  command = 0x01;
+	  LCD_write_command(command);
 
   }
 
