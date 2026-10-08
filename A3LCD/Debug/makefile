@@ -61,8 +61,8 @@ all: main-build
 main-build: A3LCD.elf secondary-outputs
 
 # Tool invocations
-A3LCD.elf A3LCD.map: $(OBJS) $(USER_OBJS) /Users/fabian/calpoly/cpe3160/A3LCD/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "A3LCD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/fabian/calpoly/cpe3160/A3LCD/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A3LCD.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+A3LCD.elf A3LCD.map: $(OBJS) $(USER_OBJS) /Users/miguel/calpoly/CPE-3160/cpe3160/A3LCD/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "A3LCD.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/miguel/calpoly/CPE-3160/cpe3160/A3LCD/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A3LCD.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

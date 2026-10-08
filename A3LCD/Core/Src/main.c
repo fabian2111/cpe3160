@@ -105,12 +105,14 @@ int main(void)
 
   //Set all pins to output
   GPIOC->MODER &= ~(0x3FFFFF);
-  GPIOC->MODER |= (0x255555);
+  //GPIOC->MODER |= (0x155555);
+  GPIOC->MODER |= (0x155555);
 
 
   //Reset PC0-PC10 to 0
   GPIOC->BRR = (0x7FF);
 
+// Pin Setup for  Assignment 3
 
   //pin 4 PC0 (RS)
   //pin 5 PC1 (R/W)
@@ -123,26 +125,34 @@ int main(void)
   //pin 12 PC8 (DB5)
   //pin 13 PC9 (DB6)
   //pin 14 PC10 (DB7)
+
+// function that is used to write to the LCD and Configure it
+// Resets the RS & RW to 00 because that is what the manual has them configured
+// And the rest of the bits are subject to change
   void LCD_write_command(uint8_t command){
 	  //Reset the state of the data bus
 	  GPIOC->BRR = (0x7F8);
 
-	  //Shift the bits to the start of DB0
+	  //Shift the bits to the start of DB0 (skipping rw,rs,E)
 	  GPIOC->BSRR = (command << 3);
 
+	  // reset RS and RW to clear them
 	  GPIOC->BRR = ((0x1 << 0) | (0x1 << 1));
 	  HAL_Delay(1);
+	  // set the E high to write to the LCD
 	  GPIOC->BSRR = (0x1 << 2);
 	  HAL_Delay(1);
+	  //set E low
 	  GPIOC->BRR = (0x1 << 2);
 
   }
 
+// when it gets the individual character it writes it to the LCD
   void LCD_write_data(uint8_t data){
-	  //reset the state of the data buses
+	  //reset the state of the data D0-7
 	  GPIOC->BRR = (0x7F8);
 
-	  //shift the bits to the start of DB0
+	  //shift the data to the start of DB0
 	  GPIOC->BSRR = (data << 3);
 
 	  //Set the bit for the RS register
@@ -151,54 +161,27 @@ int main(void)
 	  //Reset the bit for the R/W register
 	  GPIOC->BRR = (0x1 << 1);
 	  HAL_Delay(1);
+	  // set the E high to write to the LCD
 	  GPIOC->BSRR = (0x1 << 2);
 	  HAL_Delay(1);
+	  //set E low
 	  GPIOC->BRR = (0x1 << 2);
-	  //GPIOC->BRR = (0x1 << 0);
-  }
 
-  void LCD_read_data(){
-	  GPIOC->BSRR = ((0x1 << 0) | (0x1 << 1));
-	  HAL_Delay(1);
-	  GPIOC->BSRR = (0x1 << 2);
-	  HAL_Delay(1);
-	  GPIOC->BRR = (0x1 << 2);
-  }
-
-  void LCD_change_address(){
-
-	  LCD_write_command(0xC0);
   }
 
 
-  void LCD_move_right(){
-	  uint8_t com = 0x14;
-	  LCD_write_command(com);
-	  //GPIOC->BRR = (0x7F8);
-  }
-
+// Gets every individual letter to inputs it to LCD_write_data()
   void LCD_write_string(uint8_t string[], int len){
 
 	  for(int i = 0; i < len; i++){
 		  LCD_write_data(string[i]);
-		 // LCD_move_right();
-	  }
 
-  }
-
-  void move_to_second_line(){
-	  LCD_read_data();
-
-	  for(int i = 0; i < 15; i++){
-		  if((GPIOC->ODR & 0x40) != 0x40){
-			  LCD_move_right();
-		  }
 	  }
 
   }
 
 
-
+//Function to start the LCD up we can from the slides
   void LCD_Init(){
 	  uint8_t command = 0x30;
 	  LCD_write_command(command);
@@ -212,7 +195,7 @@ int main(void)
 	  command = 0x38;
 	  LCD_write_command(command);
 	  //shift display = no
-	  command = 0x10;
+	  command = 0x0C;
 	  LCD_write_command(command);
 
 	  //display on
@@ -234,55 +217,27 @@ int main(void)
   LCD_Init();
 
 
+
   while (1)
   {
-	  //HAL_Delay(50);
-	  //LCD_move_right();
-	  //LCD_Init();
-	 // int count = 0;
+	  	  //each hex represents a letter
+	  	  // LCD_write_data(word,word_length) ... for simplicity in the function
+	  	  // LCD_write_command(0x02); configures the LCD to write to the bottom line.
 
-	  int count = 0;
-
-//	  if(count < 1){
-		  uint8_t string[] = {0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x57, 0x6F, 0x72, 0x6C, 0x64};
-
-		  //change address
-		  //LCD_write_command(0xC0);
-		  //LCD_write_command(0x87);
-
-		  LCD_write_string(string, 11);
-
-		  move_to_second_line();
-
-		  uint8_t string2[] = {0x41, 0x6E, 0x67, 0x69, 0x65};
-		  LCD_write_string(string2, 5);
-		  //move_to_second_line();
-
-		  LCD_write_command(0x02);
-		  //LCD_write_command(0x87);
-
-//	  }
-	  count++;
-
-	  //if(count < 5){
-	  //LCD_write_data(0x62);
-
-	  //HAL_Delay(1000);
-	  //LCD_write_data(0x00);
-	  //}
-//	  else {
-//		  HAL_Delay(1000);
-//		  count = 0;
-//	  }
-	 // count++;
-	  //LCD_write_data(0x61);
-	  //LCD_read_data();
+	  	  uint8_t string[] = {0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x20, 0x57, 0x6F, 0x72, 0x6C, 0x64};
+	   	  LCD_write_string(string, 11);
+	   	  LCD_write_command(0x02);
 
 
 
-    /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+	   	  uint8_t Assignment3[] = {0x41,0x73,0x73,0x69,0x67,0x6e,0x6d,0x65,0x6e,0x74,0x33};
+
+	   	  LCD_write_command(0xC0);
+	   	  LCD_write_string(Assignment3, 11);
+	   	  LCD_write_command(0x02);
+
+
   }
   /* USER CODE END 3 */
 }
