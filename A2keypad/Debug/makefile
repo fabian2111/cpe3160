@@ -61,8 +61,8 @@ all: main-build
 main-build: A2keypad.elf secondary-outputs
 
 # Tool invocations
-A2keypad.elf A2keypad.map: $(OBJS) $(USER_OBJS) /Users/fabian/calpoly/cpe3160/A2keypad/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "A2keypad.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/fabian/calpoly/cpe3160/A2keypad/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A2keypad.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+A2keypad.elf A2keypad.map: $(OBJS) $(USER_OBJS) /Users/miguel/calpoly/CPE-3160/cpe3160/A2keypad/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "A2keypad.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/miguel/calpoly/CPE-3160/cpe3160/A2keypad/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A2keypad.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
