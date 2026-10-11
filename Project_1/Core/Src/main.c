@@ -288,6 +288,20 @@ void enter_message(){
 	LCD_write_command(0x02);
 }
 
+void wrong_password(){
+
+	uint8_t Incorrect_mess[9] = { 0x49, 0x6E, 0x63, 0x6F, 0x72, 0x72, 0x65, 0x63, 0x74}; // "Incorrect"
+	LCD_write_string(Incorrect_mess, 9);
+	LCD_write_command(0xC0);
+	uint8_t Password_mess[8] = {
+	    0x70, 0x61, 0x73, 0x73, 0x77, 0x6F, 0x72, 0x64
+	}; // "password"
+	LCD_write_string(Password_mess, 8);
+
+	LCD_write_command(0x02);
+
+
+}
 
 
 void concat (uint8_t string[],int* len, int value){
@@ -364,6 +378,18 @@ void unlocked_message(){
 					  clear_display();
 					  locked_message();
 					  enter_message();
+				  }
+				  if(!verified && length >=15){
+					  clear_display();
+					  wrong_password();
+					  *ptr = 10;
+					  HAL_Delay(3000);
+					  clear_display();
+					  locked_message();
+					  enter_message();
+
+
+
 				  }
 
 
