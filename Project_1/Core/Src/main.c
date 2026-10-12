@@ -246,6 +246,10 @@ void clear_display(){
 					//calculate the value
 					int col = i + 1;
 					actual_num = col + ((row -4) * 3);
+
+					//turn the column back on
+					GPIOB->ODR |= (0x1 << (i + 8));
+					HAL_Delay(200);
 					break;
 				}
 				//turn the column back on
