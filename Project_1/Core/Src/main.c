@@ -249,7 +249,7 @@ void clear_display(){
 
 					//turn the column back on
 					GPIOB->ODR |= (0x1 << (i + 8));
-					HAL_Delay(200);
+					HAL_Delay(250);
 					break;
 				}
 				//turn the column back on
@@ -309,9 +309,22 @@ void wrong_password(){
 
 
 void concat (uint8_t string[],int* len, int value){
-	uint8_t nums[] = { 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
+	uint8_t nums[] = { 0x30,0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
 
-	    string[*len] = nums[value - 1];
+	if (value == 12 || value == 10 ){
+		 *len = 10;
+		  clear_display();
+		  locked_message();
+		  enter_message();
+
+		return;
+
+	}
+	   // 11 is the '0' key
+	    if (value == 11) value = 0;
+
+
+	    string[*len] = nums[value];
 
 	    *len = *len + 1;
 
@@ -391,8 +404,6 @@ void unlocked_message(){
 					  clear_display();
 					  locked_message();
 					  enter_message();
-
-
 
 				  }
 
