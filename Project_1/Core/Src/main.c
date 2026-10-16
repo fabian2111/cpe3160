@@ -19,6 +19,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#include "LCD.h"
+
+#include "KeyPad.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -109,6 +113,10 @@ int main(void) {
 	//Reset PC0-PC10 to 0
 	GPIOC->BRR = (0x7FF);
 
+	//COnfigure LED to output Using PC 11
+	GPIOC -> MODER &= ~(0x3<<22);
+	GPIOC -> MODER |= (0x1 << 22);
+
 // Pin Setup for  Project 1
 
 //pin 4 PC0 (RS)
@@ -125,145 +133,11 @@ int main(void) {
 
 //Pins PB 4 -> PB 10 = KeyPad
 
-// function that is used to write to the LCD and Configure it
-// Resets the RS & RW to 00 because that is what the manual has them configured
-// And the rest of the bits are subject to change
-	void LCD_write_command(uint8_t command) {
-		//Reset the state of the data bus
-		GPIOC->BRR = (0x7F8);
 
-		//Shift the bits to the start of DB0 (skipping rw,rs,E)
-		GPIOC->BSRR = (command << 3);
-
-		// reset RS and RW to clear them
-		GPIOC->BRR = ((0x1 << 0) | (0x1 << 1));
-		HAL_Delay(1);
-		// set the E high to write to the LCD
-		GPIOC->BSRR = (0x1 << 2);
-		HAL_Delay(1);
-		//set E low
-		GPIOC->BRR = (0x1 << 2);
-
-	}
-
-// when it gets the individual character it writes it to the LCD
-	void LCD_write_data(uint8_t data) {
-		//reset the state of the data D0-7
-		GPIOC->BRR = (0x7F8);
-
-		//shift the data to the start of DB0
-		GPIOC->BSRR = (data << 3);
-
-		//Set the bit for the RS register
-		GPIOC->BSRR = (0x1 << 0);
-
-		//Reset the bit for the R/W register
-		GPIOC->BRR = (0x1 << 1);
-		HAL_Delay(1);
-		// set the E high to write to the LCD
-		GPIOC->BSRR = (0x1 << 2);
-		HAL_Delay(1);
-		//set E low
-		GPIOC->BRR = (0x1 << 2);
-
-	}
-
-// Gets every individual letter to inputs it to LCD_write_data()
-	void LCD_write_string(uint8_t string[], int len) {
-
-		for (int i = 0; i < len; i++) {
-			LCD_write_data(string[i]);
-
-		}
-
-	}
-
-void clear_display(){
-
-	 LCD_write_command(0x01);
-	 HAL_Delay(2);
-
-
-
-}
-
-//Function to start the LCD up we can from the slides
-	void LCD_Init() {
-		uint8_t command = 0x30;
-		LCD_write_command(command);
-		HAL_Delay(100);
-		LCD_write_command(command);
-		HAL_Delay(10);
-		LCD_write_command(command);
-		HAL_Delay(10);
-
-		//function set
-		command = 0x38;
-		LCD_write_command(command);
-		//shift display = no
-		command = 0x0C;
-		LCD_write_command(command);
-
-		//display on
-		command = 0x0F;
-		LCD_write_command(command);
-
-		//entry mode set
-		command = 0x06;
-		LCD_write_command(command);
-
-		//clear display
-		command = 0x01;
-		LCD_write_command(command);
-
-	}
 
 	HAL_Delay(50);
 	LCD_Init();
-	// have not adapted to fit project 1
-	int key_pressed() {
-		int row = -1;
-		//check through all four rows
-		for (int i = 0; i < 4; i++) {
-			//checks if the current row is turned on
-			if (GPIOB->IDR & (0x1 << (i+4))) {
-				//Set the row value to the current row
-				row = i + 4 ;
-				break;
-			}
-		}
-		int actual_num = -1;
 
-		//if a row was found, then find the column that set it high
-		//and calculate the value of the button
-		if (row != -1) {
-			for (int i = 0; i < 3; i++) {
-				//turn off a column in each loop
-				GPIOB->ODR &= ~(0x1 << (i + 8));
-
-				//if the row also turns off, then the current column is the right column
-				if (!(GPIOB->IDR & (0x1 << row))) {
-					//calculate the value
-					int col = i + 1;
-					actual_num = col + ((row -4) * 3);
-
-					//turn the column back on
-					GPIOB->ODR |= (0x1 << (i + 8));
-					HAL_Delay(250);
-					break;
-				}
-				//turn the column back on
-				GPIOB->ODR |= (0x1 << (i + 8));
-			}
-
-		} else {
-			return -1;
-		}
-
-		//reset all the columns back to high
-		GPIOC->ODR |= ((0x1 << 5) | (0x1 << 6) | (0x1 << 7));
-		return actual_num;
-	}
 
 	  // Rows: PB4-PB7 as input
 	  GPIOB->MODER &= ~((0x3 << 8) | (0x3 << 10) | (0x3 << 12) | (0x3 << 14));
@@ -278,6 +152,8 @@ void clear_display(){
 
 	  // Drive all columns high, once, before the loop
 	  GPIOB->ODR |= (0x1 << 8) | (0x1 << 9) | (0x1 << 10);
+
+
 void locked_message(){
 	uint8_t locked[] = { 0x4C, 0x6F, 0x63, 0x6B, 0x65, 0x64 }; // "Locked"
 	LCD_write_string(locked, 6);
@@ -308,8 +184,8 @@ void wrong_password(){
 }
 
 
-void concat (uint8_t string[],int* len, int value){
-	uint8_t nums[] = { 0x30,0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39};
+void concat (uint8_t string[],int* len, int value, uint8_t nums[]){
+
 
 	if (value == 12 || value == 10 ){
 		 *len = 10;
@@ -332,7 +208,7 @@ void concat (uint8_t string[],int* len, int value){
 
 int compare_password(uint8_t entered[], uint8_t password[], int pass_length,int length) {
 
-	if (pass_length != length - 10  ){
+	if (pass_length != length - 10){
 		return 0;
 
 	}
@@ -363,7 +239,57 @@ void unlocked_message(){
 
 
 }
+
+void pin_reset(uint8_t password[] , uint8_t nums[] ) {
+
+	uint8_t reset[] = {0x72,0x65,0x73,0x65,0x74,0x20,0x70,0x61,0x73,0x73,0x77,0x6F,0x72,0x64}; // "reset password"
+	uint8_t newpass[5];
+	int pin = 0;
+
+	clear_display();
+	LCD_write_string(reset, 14);
+	LCD_write_command(0xC0);              // move to line 2
+
+	while (pin < 5) {
+		int value = key_pressed();
+
+		if (value == -1) {
+			continue;        // no key pressed
+		}
+
+		if (value == 12 && pin == 0) {    // '#' first = cancel, keep old password
+			clear_display();
+			return;
+		}
+		if (value == 10 || value == 12) { // '*' or '#' mid-entry = erase what you had written and start over
+			pin = 0;
+			LCD_write_command(0xC0);
+			for (int i = 0; i < 5; i++) LCD_write_data(0x20); // blank the digits
+			LCD_write_command(0xC0);
+			continue;
+		}
+		if (value == 11) {
+
+			value = 0;       // 11 is the '0' key
+		}
+
+		newpass[pin++] = nums[value];
+		LCD_write_data(nums[value]);      // show the digit
+	}
+
+	for (int i = 0; i < 5; i++){
+		password[i] = newpass[i]; // save only when all 5 are in
+	}
+
+	HAL_Delay(1000);                      // let the user see the last digit
+	clear_display();                      // so locked_message() starts on a clean screen
+
+	GPIOC -> BSRR =(0x1<<11);
+}
+
+
  uint8_t Enter_mess[15] = { 0x45, 0x6E, 0x74, 0x65, 0x72, 0x20, 0x6B,0x65, 0x79, 0x3A }; // "Enter key"
+ uint8_t nums[] = { 0x30,0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39}; //numbers
 	int length = 10;
 	int* ptr = &length;
 	uint8_t password[] = { 0x31, 0x32, 0x33, 0x34, 0x35 };
@@ -375,12 +301,13 @@ void unlocked_message(){
 		// LCD_write_data(word,word_length) ... for simplicity in the function
 		// LCD_write_command(0x02); configures the LCD to write to the bottom line.
 
+		GPIOC -> BSRR = (0x1<<11);
 
 		// Have not Adapted to Project 1
 		 int value = key_pressed();
 			  	  //if the value is not -1, then print the new message with the new number
 			  if(value != -1 && length <15){
-				concat(Enter_mess,ptr,value);
+				concat(Enter_mess,ptr,value,nums);
 				LCD_write_command(0xC0);
 				LCD_write_string(Enter_mess, *ptr);
 				LCD_write_command(0x02);
@@ -388,11 +315,13 @@ void unlocked_message(){
 				 int verified = compare_password(Enter_mess,password,5,*ptr);
 
 				  if (verified){
+					  GPIOC -> BRR = (0x1 << 11);
 					  unlocked_message();
 					  *ptr = 10;
 
 					  HAL_Delay(5000);
 					  clear_display();
+					  pin_reset(password,nums);
 					  locked_message();
 					  enter_message();
 				  }
@@ -402,6 +331,7 @@ void unlocked_message(){
 					  *ptr = 10;
 					  HAL_Delay(3000);
 					  clear_display();
+
 					  locked_message();
 					  enter_message();
 
