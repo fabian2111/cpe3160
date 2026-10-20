@@ -64,41 +64,38 @@ static void MX_GPIO_Init(void);
   */
 int main(void)
 {
-
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  /* USER CODE BEGIN 2 */
-
-  /* USER CODE END 2 */
-
-  /* Initialize leds */
   BSP_LED_Init(LED_GREEN);
-
-  /* Initialize USER push-button, will be used to trigger an interrupt each time it's pressed.*/
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+
+  // ARR Value Need is 799    (800-1)
+  // 25% duty cycle	800/4 == 200 - 1 ====> 199 for the CC1
+  //PSC Value is 0
+
+  RCC->APB1ENR1 |= (RCC_APB1ENR1_TIM2EN);  // turn on TIM2
+  TIM2->SR &= ~(TIM_SR_CC1IF);     // clear interrupt flag
+
+  TIM2 -> PSC = 0;
+  TIM2 -> ARR = 799;
+  TIM2 -> CCR1 = 199;
+
+  TIM2 -> CR1 |= TIM_CR1_CEN; // Start the timer
+
+  void TIM2_IRQHandler(void){
+
+	  if (TIM2->SR & TIM_SR_CC1IF){
+
+	  }
+  }
+
+
+
+
+
   while (1)
   {
 
