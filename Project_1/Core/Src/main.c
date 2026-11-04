@@ -113,7 +113,7 @@ int main(void) {
 	//Reset PC0-PC10 to 0
 	GPIOC->BRR = (0x7FF);
 
-	//COnfigure LED to output Using PC 11
+	//Configure LED to output Using PC 11
 	GPIOC -> MODER &= ~(0x3<<22);
 	GPIOC -> MODER |= (0x1 << 22);
 
