@@ -61,8 +61,8 @@ all: main-build
 main-build: A4.elf secondary-outputs
 
 # Tool invocations
-A4.elf A4.map: $(OBJS) $(USER_OBJS) /Users/miguel/calpoly/CPE-3160/cpe3160/A4/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "A4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/miguel/calpoly/CPE-3160/cpe3160/A4/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+A4.elf A4.map: $(OBJS) $(USER_OBJS) /Users/fabian/calpoly/cpe3160/A4/STM32L476RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "A4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/fabian/calpoly/cpe3160/A4/STM32L476RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="A4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

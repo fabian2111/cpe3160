@@ -65,17 +65,27 @@ static void MX_GPIO_Init(void);
 
 void TIM2_IRQHandler(void)            // file scope, outside main
 {
-    if (TIM2->SR & TIM_SR_CC1IF) {
-        TIM2->SR &= ~TIM_SR_CC1IF;    // clear the CC1 flag
+//    if (TIM2->SR & TIM_SR_CC1IF) {
+//        TIM2->SR &= ~TIM_SR_CC1IF;    // clear the CC1 flag
+//
+//        if (GPIOA->ODR & (1 << 5)) {  // pin is high -> end of high time
+//            GPIOA->BRR = (1 << 5);    // drive low
+//            TIM2->CCR1 = 0;           // next match: at the wrap (count 0)
+//        } else {                      // pin is low -> start of new period
+//            GPIOA->BSRR = (1 << 5);   // drive high
+//            TIM2->CCR1 = 200;         // next match: 200 ticks later
+//        }
+//    }
 
-        if (GPIOA->ODR & (1 << 5)) {  // pin is high -> end of high time
-            GPIOA->BRR = (1 << 5);    // drive low
-            TIM2->CCR1 = 0;           // next match: at the wrap (count 0)
-        } else {                      // pin is low -> start of new period
-            GPIOA->BSRR = (1 << 5);   // drive high
-            TIM2->CCR1 = 200;         // next match: 200 ticks later
-        }
-    }
+	if(TIM2->SR & TIM_SR_CC1IF){
+		GPIOA->BRR = (0x1 << 5);
+		TIM2->SR &= ~(TIM_SR_CC1IF);
+	}
+
+	if(TIM2->SR & TIM_SR_UIF){
+		GPIOA->BSRR = (0x1 << 5);
+		TIM2->SR &= ~(TIM_SR_UIF);
+	}
 }
 
 int main(void)
@@ -90,30 +100,26 @@ int main(void)
 
   RCC->AHB2ENR |= RCC_AHB2ENR_GPIOAEN;
   // MODER SETUP
-  GPIOA -> MODER &= ~(3<<10);
-  GPIOA -> MODER |= (1<<10);
+  GPIOA->MODER &= ~(0x3 << 10);
+  GPIOA->MODER |= (0x1 << 10);
 
   // ARR Value Need is 799    (800-1)
   // 25% duty cycle	800/4 == 200 - 1 ====> 199 for the CC1
   //PSC Value is 0
 
   RCC->APB1ENR1 |= (RCC_APB1ENR1_TIM2EN);  // turn on TIM2
-  TIM2->SR  &= ~( TIM_SR_CC1IF);     // clear interrupt flag
 
-  TIM2->DIER |= TIM_DIER_CC1IE;
+
+
   NVIC->ISER[0] = (1 << (TIM2_IRQn & 0x1F)); // Enables the TIM2 Interrupt in the NVIC
   __enable_irq();
 
-
+  TIM2->DIER |= (TIM_DIER_CC1IE | TIM_DIER_UIE);
+  TIM2->SR  &= ~(TIM_SR_CC1IF | TIM_SR_UIF);     // clear interrupt flag
   TIM2 -> PSC = 0;
   TIM2 -> ARR = 799;
-  TIM2 -> CCR1 = 200; //199
+  TIM2 -> CCR1 = 199; //199
   TIM2 -> CR1 |= TIM_CR1_CEN; // Start the timer
-
-
-
-
-
 
 
   while (1)
